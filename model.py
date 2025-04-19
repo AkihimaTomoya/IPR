@@ -32,13 +32,21 @@ class Model:
         return contents
 
     def generate_image_from_contents(self, contents):
-        return self.client.models.generate_content(
-            model="gemini-2.0-flash-exp-image-generation",
-            contents=contents,
-            config=types.GenerateContentConfig(response_modalities=['Text', 'Image'])
-        )
+        try:
+            return self.client.models.generate_content(
+                model="gemini-2.0-flash-exp-image-generation",
+                contents=contents,
+                config=types.GenerateContentConfig(
+                    response_modalities=['Text', 'Image']
+                )
+            )
+        except Exception as e:
+            print(f"[Gemini Error] {e}")
+            return None
 
     def extract_image_from_response(self, response, output_dir='static/generated'):
+        if not response or not hasattr(response, 'candidates'):
+            return None
         for part in response.candidates[0].content.parts:
             if part.inline_data:
                 img = Image.open(BytesIO(part.inline_data.data))
@@ -112,3 +120,28 @@ class Model:
 
         return detailed_items
 
+    def try_on(self,person_path, outfit_path, output_dir='static/tryon'):
+        try:
+            with Image.open(person_path) as person_img, Image.open(outfit_path) as outfit_img:
+                person_buffer = BytesIO()
+                outfit_buffer = BytesIO()
+                person_img.save(person_buffer, format="PNG")
+                outfit_img.save(outfit_buffer, format="PNG")
+                person_bytes = person_buffer.getvalue()
+                outfit_bytes = outfit_buffer.getvalue()
+
+            prompt_text = "Hãy thay trang phục trong ảnh thứ hai (outfit) vào người trong ảnh đầu tiên. Giữ nguyên tư thế, khuôn mặt và đặc điểm cơ thể của người trong ảnh. Kết quả nên là một bức ảnh thực tế thể hiện người đang mặc bộ trang phục từ ảnh thứ hai."
+
+            contents = [
+                types.Content(role="user", parts=[
+                    types.Part(text=prompt_text),
+                    types.Part(inline_data=types.Blob(mime_type="image/png", data=person_bytes)),
+                    types.Part(inline_data=types.Blob(mime_type="image/png", data=outfit_bytes))
+                ])
+            ]
+            response = self.generate_image_from_contents(contents)
+            result_filename = self.extract_image_from_response(response, output_dir)
+            return os.path.join(output_dir, result_filename) if result_filename else None
+        except Exception as e:
+            print(f"[Try-on Error] {e}")
+            return None

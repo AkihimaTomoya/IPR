@@ -1,11 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, g
 from werkzeug.utils import secure_filename
 import os
-import uuid
 from google import genai
-from google.genai import types
-from PIL import Image
-from io import BytesIO
 import sqlite3
 from model import Model
 
@@ -31,6 +27,7 @@ outfit_model = Model(client, api_key)
 # Ensure directories exist
 os.makedirs(os.path.join('static', 'uploads'), exist_ok=True)
 os.makedirs(os.path.join('static', 'generated'), exist_ok=True)
+os.makedirs(os.path.join('static', 'tryon'), exist_ok=True)
 
 DATABASE = 'history.db'
 
@@ -150,7 +147,6 @@ def search_data():
         return jsonify([])
 
     try:
-        # Use the search_data method of the Model class to get detailed items
         detailed_items = outfit_model.search_data(query)
     except Exception as e:
         return jsonify({"error": f"Error fetching data: {e}"})
@@ -210,24 +206,67 @@ def outfit_recommend():
 
     return render_template('outfit_recommend.html', image_path=None, filename=None, query=None)
 
+
+# Upload user image for try-on
+@app.route('/tryon-outfit', methods=['GET', 'POST'])
+def tryon_outfit():
+    tryon_result = None
+    sample_outfits = [
+        "static/samples/outfit1.jpg",
+        "static/samples/outfit2.jpg",
+        "static/samples/outfit3.jpg"
+    ]
+    sample_people = [
+        "static/samples/person1.jpg",
+        "static/samples/person2.jpg",
+        "static/samples/person3.jpg"
+    ]
+    if request.method == 'POST':
+        person_image_path = None
+        outfit_image_path = None
+        # --- Ảnh người ---
+        person_file = request.files.get('person_image')
+        selected_person = request.form.get('sample_person')
+
+        if person_file and person_file.filename != '' and allowed_file(person_file.filename):
+            filename = secure_filename(person_file.filename)
+            person_image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            person_file.save(person_image_path)
+        elif selected_person in sample_people:
+            person_image_path = selected_person
+
+        # --- Ảnh outfit ---
+        outfit_file = request.files.get('outfit_image')
+        selected_outfit = request.form.get('sample_outfit')
+
+        if outfit_file and outfit_file.filename != '' and allowed_file(outfit_file.filename):
+            filename = secure_filename(outfit_file.filename)
+            outfit_image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            outfit_file.save(outfit_image_path)
+        elif selected_outfit in sample_outfits:
+            outfit_image_path = selected_outfit
+
+        # Kiểm tra đủ 2 ảnh
+        if not person_image_path or not outfit_image_path:
+            flash("Cần cung cấp ảnh người và outfit (upload hoặc chọn mẫu).")
+            return redirect(request.url)
+
+        # Thực hiện try-on
+        tryon_output = outfit_model.try_on(person_image_path, outfit_image_path)
+        if tryon_output:
+            tryon_result = tryon_output
+        else:
+            flash("Xử lý thử đồ thất bại, vui lòng thử lại sau.")
+            return redirect(request.url)
+
+    return render_template('tryon_outfit.html',
+                               sample_people=sample_people,
+                               sample_outfits=sample_outfits,
+                               tryon_result=tryon_result)
+
+
+
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
-
-
-# # Upload user image for try-on
-# @app.route('/tryon-outfit', methods=['GET', 'POST'])
-# def tryon_outfit():
-#     if request.method == 'POST':
-#         # TODO: handle file upload
-#         file = request.files.get('image')
-#         if not file:
-#             flash('No file selected')
-#             return redirect(request.url)
-#         # Save and process file
-#         filename = file.filename
-#         file.save(os.path.join('uploads', filename))
-#         # TODO: perform try-on processing
-#         return redirect(url_for('outfit_recommend'))
-#     return render_template('tryon_outfit.html')
 
