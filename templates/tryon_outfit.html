@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thử Đồ</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1, h2 { color: #333; }
+    .form-section { margin-bottom: 25px; }
+    .flashes { color: #e74c3c; list-style: none; padding: 0; }
+    .flashes li { margin-bottom: 5px; }
+    .preview-img { width: 100px; height: auto; margin: 5px; border: 1px solid #ccc; }
+    .result-section img { max-width: 400px; display: block; margin-top: 15px; }
+    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>Thử Đồ</h1>
+
+  {%- with messages = get_flashed_messages() -%}
+    {%- if messages -%}
+      <ul class="flashes">
+      {%- for msg in messages -%}
+        <li>{{ msg }}</li>
+      {%- endfor -%}
+      </ul>
+    {%- endif -%}
+  {%- endwith %}
+
+  <form method="post" enctype="multipart/form-data">
+    <div class="form-section">
+      <h2>Chọn hoặc tải lên ảnh người</h2>
+      <label for="person_image">Tải lên ảnh:</label>
+      <input type="file" name="person_image" id="person_image" accept="image/*">
+      <div>
+        <p>Hoặc chọn mẫu:</p>
+        {% for path in sample_people %}
+          <label>
+            <input type="radio" name="sample_person" value="{{ path }}">
+            <img src="/{{ path }}" alt="Mẫu người {{ loop.index }}" class="preview-img">
+          </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h2>Chọn hoặc tải lên ảnh outfit</h2>
+      <label for="outfit_image">Tải lên ảnh:</label>
+      <input type="file" name="outfit_image" id="outfit_image" accept="image/*">
+      <div>
+        <p>Hoặc chọn mẫu:</p>
+        {% for path in sample_outfits %}
+          <label>
+            <input type="radio" name="sample_outfit" value="{{ path }}">
+            <img src="/{{ path }}" alt="Mẫu outfit {{ loop.index }}" class="preview-img">
+          </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <button type="submit">Thử đồ</button>
+  </form>
+
+  {% if tryon_result %}
+    <div class="result-section">
+      <h2>Kết quả thử đồ</h2>
+      <img src="/{{ tryon_result }}" alt="Kết quả thử đồ">
+    </div>
+  {% endif %}
+</body>
+</html>
