@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Generate Outfit</title>
+</head>
+<body>
+    <h1>Generate Your Outfit</h1>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul>
+        {% for message in messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+    <form method="POST" enctype="multipart/form-data" action="{{ url_for('generate_outfit') }}">
+        <!-- Gender -->
+        <h2>Gender (Optional)</h2>
+        {% for g in genders %}
+            <label>
+                <input type="radio" name="gender" value="{{ g }}"> {{ g }}
+            </label><br>
+        {% endfor %}
+
+        <!-- Color -->
+        <h2>Color (Optional - choose one)</h2>
+        <select name="color">
+            <option value="">-- None --</option>
+            {% for c in colors %}
+                <option value="{{ c }}">{{ c }}</option>
+            {% endfor %}
+        </select>
+
+        <!-- Style -->
+        <h2>Style (Optional - choose one)</h2>
+        <select name="style">
+            <option value="">-- None --</option>
+            {% for s in styles %}
+                <option value="{{ s }}">{{ s }}</option>
+            {% endfor %}
+        </select>
+
+        <!-- Prompt -->
+        <h2>Prompt (Optional)</h2>
+        <textarea name="prompt" rows="4" cols="50" placeholder="Describe the outfit you want..."></textarea>
+
+        <!-- Image Upload -->
+        <h2>Upload Image (Optional)</h2>
+        <input type="file" name="image" accept="image/*">
+
+        <br><br>
+        <input type="submit" value="Generate">
+    </form>
+</body>
+</html>

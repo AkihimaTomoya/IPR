@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+</head>
+<body>
+<nav>
+    <a href="/generate-outfit">Generate</a>
+    <a>Try on</a>
+    <a href="/outfit-recommend">Outfit recommend</a>
+</nav>
+    <h1>History</h1>
+    <ul>
+        {% for entry in history %}
+            <li>
+                <img src="{{ url_for('static', filename='generated/' ~ entry['filename']) }}" alt="Generated Image" style="width:100px;">
+                <p>Query: {{ entry['query'] }}</p>
+                <p>Created At: {{ entry['created_at'] }}</p>
+                <a href="{{ url_for('search_outfit', filename=entry['filename']) }}">Search Again</a>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
