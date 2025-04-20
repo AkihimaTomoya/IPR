@@ -18,9 +18,9 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Set API key and model
-os.environ["SERPAPI_API_KEY"] = "your-serpapi-api-key"
+os.environ["SERPAPI_API_KEY"] = "your-api-key"
 api_key = os.environ.get("SERPAPI_API_KEY")
-os.environ["GEMINI_API_KEY"] = "your-gemini-api-key"
+os.environ["GEMINI_API_KEY"] = "your-api-key"
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 outfit_model = Model(client, api_key)
 
