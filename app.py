@@ -18,9 +18,9 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Set API key and model
-os.environ["SERPAPI_API_KEY"] = "your-api-key"
+os.environ["SERPAPI_API_KEY"] = "e24c95036ff345cb348eeee91b39fb83488995da835d39bac1f293842f884995"
 api_key = os.environ.get("SERPAPI_API_KEY")
-os.environ["GEMINI_API_KEY"] = "your-api-key"
+os.environ["GEMINI_API_KEY"] = "AIzaSyA94CesoXfH8_6HQ0fVmgY3sXJ-eP1EUJA"
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 outfit_model = Model(client, api_key)
 
@@ -252,21 +252,41 @@ def tryon_outfit():
             return redirect(request.url)
 
         # Thực hiện try-on
-        tryon_output = outfit_model.try_on(person_image_path, outfit_image_path)
+        try:
+            tryon_output = outfit_model.try_on(person_image_path, outfit_image_path)
+        except Exception as e:
+            flash(f"Lỗi xử lý thử đồ: {str(e)}")
+            return redirect(request.url)
+
         if tryon_output:
             tryon_result = tryon_output
+
+            # --- Thêm vào lịch sử ---
+            try:
+                filename = os.path.basename(tryon_result)
+                query = f"Try-On từ: {os.path.basename(person_image_path)} + {os.path.basename(outfit_image_path)}"
+                db = get_db()
+                db.execute('INSERT INTO history (filename, query) VALUES (?, ?)', (filename, query))
+                db.commit()
+            except Exception as e:
+                flash(f"Không thể lưu lịch sử: {str(e)}")
+
         else:
             flash("Xử lý thử đồ thất bại, vui lòng thử lại sau.")
             return redirect(request.url)
 
+    history_count = get_db().execute('SELECT COUNT(*) AS total FROM history').fetchone()['total']
+
     return render_template('tryon_outfit.html',
-                               sample_people=sample_people,
-                               sample_outfits=sample_outfits,
-                               tryon_result=tryon_result)
+                           sample_people=sample_people,
+                           sample_outfits=sample_outfits,
+                           tryon_result=tryon_result,
+                           history_count=history_count)
 
 
 
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
+
 
