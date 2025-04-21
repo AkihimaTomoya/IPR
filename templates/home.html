@@ -1,25 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Home</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Outfit Styler</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #fdfbf0;
+    }
+  </style>
 </head>
-<body>
-<nav>
-    <a href="/generate-outfit">Generate</a>
-    <a href="/tryon-outfit">Try on</a>
-    <a href="/outfit-recommend">Outfit recommend</a>
-</nav>
-    <h1>History</h1>
-    <ul>
-        {% for entry in history %}
-            <li>
-                <img src="{{ url_for('static', filename='generated/' ~ entry['filename']) }}" alt="Generated Image" style="width:100px;">
-                <p>Query: {{ entry['query'] }}</p>
-                <p>Created At: {{ entry['created_at'] }}</p>
-                <a href="{{ url_for('search_outfit', filename=entry['filename']) }}">Search Again</a>
-            </li>
-        {% endfor %}
-    </ul>
+<body class="min-h-screen">
+
+  <!-- Navigation -->
+  <nav class="flex justify-between items-center px-8 py-4 shadow-sm bg-white/50 fixed backdrop-blur-sm w-full top-0 z-50">
+    <!-- Logo + tên -->
+    <div class="text-2xl font-bold text-green-800 flex items-center gap-2">
+      <a href="{{ url_for('home') }}" class="flex items-center gap-2 group">
+        <span class="text-2xl">🧥</span>
+        <span class="group-hover:underline">OutfitAI</span>
+      </a>
+    </div>
+  
+    <!-- Các nút điều hướng -->
+    <div class="flex gap-6 items-center text-green-800 font-medium">
+      <!-- <a href="{{ url_for('outfit_recommend') }}" class="hover:underline">Outfit Recommend</a> -->
+      <a href="{{ url_for('tryon_outfit') }}" class="hover:underline">Try On</a>  
+      <a href="{{ url_for('generate_outfit') }}" class="bg-green-800 text-white px-4 py-2 rounded-md hover:bg-green-700">Generate Outfit</a>
+    </div>
+  </nav>
+  
+
+  <!-- Hero Section -->
+  <main class="max-w-5xl mx-auto text-center pt-40 px-4">
+    <h1 class="text-5xl font-bold mb-8 leading-tight text-green-900">
+      Transform Your Outfit with AI Suggestions
+    </h1>
+
+    <p class="text-xl text-green-800/80 mb-12 max-w-2xl mx-auto">
+      Upload your photo and explore outfit alternatives — change styles, try new colors, and get accessory suggestions powered by AI.
+    </p>
+
+    <div class="flex flex-wrap justify-center gap-4 mb-12 text-green-900 font-medium">
+      <div class="bg-green-100 px-6 py-3 rounded-full flex items-center gap-2">
+        ✅ Upload a photo
+      </div>
+      <div class="bg-green-100 px-6 py-3 rounded-full flex items-center gap-2">
+        ✅ Get outfit suggestions
+      </div>
+      <div class="bg-green-100 px-6 py-3 rounded-full flex items-center gap-2">
+        ✅ Style with accessories
+      </div>
+    </div>
+
+    <!-- <button class="bg-yellow-400 text-white px-8 py-4 text-xl flex items-center gap-2 rounded-md mx-auto">
+        <span class="text-2xl">👉🏿</span>
+      Start Designing Now
+    </button> -->
+    <a href="{{ url_for('generate_outfit') }}" 
+      class="inline-flex items-center gap-3 px-6 py-3 bg-yellow-400 text-white text-lg font-medium rounded-xl shadow-md hover:bg-yellow-500 transition">
+      <span class="text-2xl">🥼</span>
+      Start Designing Now
+    </a>
+
+    
+  </main>
+
 </body>
 </html>
