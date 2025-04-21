@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/generate_outfit.css') }}">
-
+    <script src="https://cdn.tailwindcss.com"></script>
     <title>Generate Outfit</title>
 </head>
 <style>
@@ -15,13 +15,7 @@
     color: #333;
 }
 
-h1 {
-    background-color: #ffffff;
-    padding: 20px;
-    text-align: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    margin: 0;
-}
+
 .gender-options {
     display: flex;
     gap: 20px;
@@ -97,19 +91,40 @@ ul {
     margin: 20px auto;
     max-width: 700px;
 }
+.border{
+    padding-top: 100px;
+}
 
 </style>
 <body>
-    <h1>Generate Your Outfit</h1>
-    {% with messages = get_flashed_messages() %}
+    <nav class="flex justify-between items-center px-8 py-4 shadow-sm bg-white/50 fixed backdrop-blur-sm w-full top-0 z-50">
+        <!-- Logo + tên -->
+        <div class="text-2xl font-bold text-green-800 flex items-center gap-2">
+            <a href="{{ url_for('home') }}" class="flex items-center gap-2 group">
+              <span class="text-2xl">🧥</span>
+              <span class="group-hover:underline">OutfitAI</span>
+            </a>
+        </div>
+      
+        <!-- Các nút điều hướng -->
+        <div class="flex gap-6 items-center text-green-800 font-medium">
+          <!-- <a href="{{ url_for('outfit_recommend') }}" class="hover:underline">Outfit Recommend</a> -->
+          <a href="{{ url_for('tryon_outfit') }}" class="hover:underline">Try On</a>  
+          <a href="{{ url_for('generate_outfit') }}" class="bg-green-800 text-white px-4 py-2 rounded-md hover:bg-green-700">Generate Outfit</a>
+        </div>
+      </nav>
+      
+    <div class="border">
+        {% with messages = get_flashed_messages() %}
         {% if messages %}
         <ul>
         {% for message in messages %}
         <li>{{ message }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
+        {% endfor %}
+        </ul>
+    {% endif %}
+    {% endwith %}
+    </div>
 
     <form method="POST" enctype="multipart/form-data" action="{{ url_for('generate_outfit') }}">
         <!-- Gender -->
