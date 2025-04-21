@@ -2,52 +2,212 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Generate Outfit</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles/generate_outfit.css') }}">
-</head>
-<body class="bg-gray-100 text-gray-800 font-sans">
+  <title>Search & Outfit</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
 
-  <!-- Navbar -->
-  <nav class="flex justify-between items-center px-8 py-4 shadow bg-white fixed w-full top-0 z-50">
+    .container {
+      display: flex;
+      gap: 40px;
+      padding: 20px;
+      justify-content: space-between;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .products, .images {
+      flex: 1;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .products h2, .images h2 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    .products ul {
+      padding: 0;
+      list-style-type: none;
+    }
+
+    .products li {
+      margin-bottom: 1.5em;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 10px;
+    }
+
+    .products img {
+      max-width: 100px;
+      display: block;
+      margin-bottom: 10px;
+      border-radius: 4px;
+    }
+
+    .products a {
+      color: #007bff;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .products a:hover {
+      text-decoration: underline;
+    }
+
+    .images img {
+      width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    #loader {
+      margin-top: 1em;
+    }
+
+    progress {
+      width: 100%;
+    }
+    .border{
+      padding-top: 100px;
+    }
+    button[type="submit"] {
+      background-color: #007bff;
+      color: white;
+      font-size: 16px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      transition: background-color 0.3s;
+    }
+    .custom-upload-btn {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .custom-upload-btn:hover {
+      background: #4a6632;
+    }
+
+  </style>
+</head>
+<body>
+  <nav class="flex justify-between items-center px-8 py-4 shadow-sm bg-white/50 fixed backdrop-blur-sm w-full top-0 z-50">
+    <!-- Logo + tên -->
     <div class="text-2xl font-bold text-green-800 flex items-center gap-2">
       <a href="{{ url_for('home') }}" class="flex items-center gap-2 group">
         <span class="text-2xl">🧥</span>
         <span class="group-hover:underline">OutfitAI</span>
       </a>
     </div>
-      </div class="flex gap-6 items-center text-green-800 font-medium">
-      <!-- <a href="{{ url_for('outfit_recommend') }}" class="hover:underline">Outfit Recommend</a> -->
-      <a href="{{ url_for('tryon_outfit') }}" class="hover:underline">Try On</a>  
+
+    <!-- Các nút điều hướng -->
+    <div class="flex gap-6 items-center text-green-800 font-medium">
+       <a href="{{ url_for('outfit_recommend') }}" class="hover:underline">Outfit Recommend</a>
+      <a href="{{ url_for('tryon_outfit') }}" class="hover:underline">Try On</a>
       <a href="{{ url_for('generate_outfit') }}" class="bg-green-800 text-white px-4 py-2 rounded-md hover:bg-green-700">Generate Outfit</a>
     </div>
   </nav>
 
-  <!-- Main Content -->
-  <main class="pt-28 max-w-3xl mx-auto px-4">
-    <h1 class="text-center text-3xl font-semibold bg-white py-6 shadow rounded mb-8">Generate Your Custom Outfit</h1>
+  <div class="border">
+    <h1 style="text-align: center; padding: 20px; background-color: #fff; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">Outfit & Shopping Recommendations</h1>
+  </div>
 
-    <form method="post" enctype="multipart/form-data" class="bg-white p-6 rounded shadow">
-      <div class="mb-4">
-        <h2 class="text-xl font-semibold mb-2">1. Upload a reference photo</h2>
-        <input type="file" name="reference_image" accept="image/*" class="file-upload">
-      </div>
-
-      <div class="mb-4">
-        <h2 class="text-xl font-semibold mb-2">2. Describe the outfit you want</h2>
-        <textarea name="description" rows="4" class="w-full border rounded p-2" placeholder="E.g. black hoodie with jeans and sneakers..."></textarea>
-      </div>
-
-      <input type="submit" value="✨ Generate Outfit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded mt-4 w-full">
-    </form>
-
-    {% if result %}
-    <div class="mt-8 text-center">
-      <h2 class="text-xl font-semibold mb-2">Result</h2>
-      <img src="{{ url_for('static', filename=result.split('static/')[-1]) }}" class="mx-auto rounded shadow max-w-md">
+  <div class="container">
+    <!-- LEFT: Upload Image -->
+    <div class="images">
+      <h2>Upload Your Image</h2>
+      <form method="POST" enctype="multipart/form-data">
+        <div class="preview-area">
+          {% if image_path %}
+            <img id="image-preview" src="{{ url_for('static', filename='uploads/' + filename) }}" alt="Uploaded Image">
+          {% else %}
+            <img id="image-preview" style="display:none;" alt="Uploaded Image">
+          {% endif %}
+        </div>
+        <input type="file" name="image" accept="image/*" id="image-upload" onchange="previewImage(event)" style="display: none;" />
+        <label for="image-upload" class="bg-green-700 text-white px-5 py-2 rounded-md font-semibold hover:bg-green-800">Upload Image</label>
+        <br><br>
+        <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-green-700">Outfit Recommend</button>
+      </form>
     </div>
+
+    <!-- RIGHT: Product Recommendations -->
+    <div class="products">
+      <h2>Related Products</h2>
+      {% if query %}
+        <div id="loader">
+          <p>Loading products...</p>
+        </div>
+        <ul id="product-list"></ul>
+      {% else %}
+        <p>No outfit generated yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <script>
+    function previewImage(event) {
+      const imagePreview = document.getElementById('image-preview');
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function () {
+          imagePreview.src = reader.result;
+          imagePreview.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    {% if query %}
+      const query = "{{ query }}";
+      fetch(`/search_data?query=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(items => {
+          const productList = document.getElementById("product-list");
+          const loader = document.getElementById("loader");
+          productList.innerHTML = "";
+          loader.style.display = "none";
+
+          if (items.length === 0) {
+            productList.innerHTML = "<p>No products found.</p>";
+          } else {
+            items.forEach((item, index) => {
+              const li = document.createElement("li");
+              li.innerHTML = `
+                <h3>[${index + 1}] ${item.title}</h3>
+                <p>💰 Price: ${item.price || "N/A"}</p>
+                <p>🛍️ Source: ${item.source || "N/A"}</p>
+                <p><a href="${item.link}" target="_blank">🔗 View Product</a></p>
+                ${item.thumbnail ? `<img src="${item.thumbnail}" alt="${item.title}">` : "<p>No image available</p>"}
+              `;
+              productList.appendChild(li);
+            });
+          }
+        })
+        .catch(err => {
+          console.error("Error fetching product data:", err);
+          const productList = document.getElementById("product-list");
+          productList.innerHTML = "<p>Error loading products. Please try again later.</p>";
+        });
     {% endif %}
-  </main>
+  </script>
 </body>
 </html>

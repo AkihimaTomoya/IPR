@@ -248,14 +248,14 @@ def tryon_outfit():
 
         # Kiểm tra đủ 2 ảnh
         if not person_image_path or not outfit_image_path:
-            flash("Cần cung cấp ảnh người và outfit (upload hoặc chọn mẫu).")
+            flash("Please provide both a person image and an outfit (upload or choose a sample).")
             return redirect(request.url)
 
         # Thực hiện try-on
         try:
             tryon_output = outfit_model.try_on(person_image_path, outfit_image_path)
         except Exception as e:
-            flash(f"Lỗi xử lý thử đồ: {str(e)}")
+            flash(f"Error try on cloth: {str(e)}")
             return redirect(request.url)
 
         if tryon_output:
@@ -269,10 +269,10 @@ def tryon_outfit():
                 db.execute('INSERT INTO history (filename, query) VALUES (?, ?)', (filename, query))
                 db.commit()
             except Exception as e:
-                flash(f"Không thể lưu lịch sử: {str(e)}")
+                flash(f"Cannot save to history: {str(e)}")
 
         else:
-            flash("Xử lý thử đồ thất bại, vui lòng thử lại sau.")
+            flash("Try on cloth fail, please try again.")
             return redirect(request.url)
 
     history_count = get_db().execute('SELECT COUNT(*) AS total FROM history').fetchone()['total']

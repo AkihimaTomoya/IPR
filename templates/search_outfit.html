@@ -93,7 +93,7 @@
   
     <!-- Các nút điều hướng -->
     <div class="flex gap-6 items-center text-green-800 font-medium">
-      <!-- <a href="{{ url_for('outfit_recommend') }}" class="hover:underline">Outfit Recommend</a> -->
+       <a href="{{ url_for('outfit_recommend') }}" class="hover:underline">Outfit Recommend</a>
       <a href="{{ url_for('tryon_outfit') }}" class="hover:underline">Try On</a>  
       <a href="{{ url_for('generate_outfit') }}" class="bg-green-800 text-white px-4 py-2 rounded-md hover:bg-green-700">Generate Outfit</a>
     </div>
@@ -117,10 +117,6 @@
     <!-- RIGHT: Product Recommendations -->
     <div class="products">
       <h2>Related Products</h2>
-      <div id="loader">
-        <p>In progress…</p>
-        <progress id="progress" value="0" max="100"></progress>
-      </div>
       <ul id="product-list"></ul>
       <p id="loading-message">Loading products...</p>
     </div>
