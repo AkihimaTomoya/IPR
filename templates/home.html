@@ -63,7 +63,17 @@
       <span class="text-2xl">🥼</span>
       Start Designing Now
     </a>
-
+    <h1>History</h1>
+    <ul>
+        {% for entry in history %}
+            <li>
+                <img src="{{ url_for('static', filename='generated/' ~ entry['filename']) }}" alt="Generated Image" style="width:100px;">
+                <p>Query: {{ entry['query'] }}</p>
+                <p>Created At: {{ entry['created_at'] }}</p>
+                <a href="{{ url_for('search_outfit', filename=entry['filename']) }}">Search Again</a>
+            </li>
+        {% endfor %}
+    </ul>
     
   </main>
 
