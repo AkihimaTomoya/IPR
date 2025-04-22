@@ -1,20 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Outfit Recommend</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <title>Search & Outfit</title>
   <style>
-    body {
-      font-family: "Inter", sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f4f4f4;
-      /* Hide scrollbar */
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-      overflow-y: auto;
+    :root {
+      --primary: #5d7f3e;
+      --primary-hover: #4a6632;
+      --bg-gradient: linear-gradient(135deg, #f0f7ef 0%, #e5e9ec 100%);
+      --card: #fff;
+      --shadow: 0 6px 24px rgba(93,127,62,0.09), 0 1.5px 4px rgba(93,127,62,0.06);
+      --border: #e6e6e6;
+      --text: #333;
+      --highlight: #b5e08d;
+      --accent: #e8f7e0;
     }
     html::-webkit-scrollbar,
     body::-webkit-scrollbar {
@@ -22,165 +24,434 @@
       height: 0;
       background: transparent;
     }
-
+    html, body { height: 100%; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Inter", sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text);
+      min-height: 100vh;
+      /* Hide scrollbar */
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+      overflow-y: auto;
+    }
     .container {
-      display: flex;
-      gap: 40px;
-      padding: 20px;
-      justify-content: space-between;
       max-width: 1200px;
       margin: 0 auto;
-    }
-
-    .products, .images {
-      flex: 1;
-      background-color: #fff;
       padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
-
-    .products h2, .images h2 {
-      font-size: 24px;
+    .main {
+      padding: 80px 0 20px;
+    }
+    .recommend-card {
+      background: var(--card);
+      border-radius: 24px;
+      padding: 40px 32px;
+      box-shadow: var(--shadow);
+      margin-bottom: 40px;
+      border: 1.5px solid var(--accent);
+    }
+    .two-column-layout {
+      display: flex;
+      gap: 30px;
+    }
+    .upload-section {
+      flex: 1;
+      min-width: 280px;
+    }
+    .products-section {
+      flex: 1;
+    }
+    .upload-container {
+      background: var(--accent);
+      border-radius: 16px;
+      padding: 20px;
+    }
+    .preview-area {
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       margin-bottom: 20px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #f4f8f1;
     }
-
-    .products ul {
-      padding: 0;
-      list-style-type: none;
+    #image-preview {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
-
-    .products li {
-      margin-bottom: 1.5em;
-      border-bottom: 1px solid #ddd;
-      padding-bottom: 10px;
+    .action-buttons {
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+      margin-top: 20px;
     }
-
-    .products img {
-      max-width: 100px;
-      display: block;
-      margin-bottom: 10px;
-      border-radius: 4px;
-    }
-
-    .products a {
-      color: #007bff;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    .products a:hover {
-      text-decoration: underline;
-    }
-
-    .images img {
-      width: 100%;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    #loader {
-      margin-top: 1em;
-    }
-
-    progress {
-      width: 100%;
-    }
-    .border{
-      padding-top: 100px;
-    }
-    button[type="submit"] {
-      background-color: #007bff;
-      color: white;
-      font-size: 16px;
-      padding: 12px 20px;
+    .action-buttons button,
+    .action-buttons label {
+      background: linear-gradient(90deg, #7dac6b 0%, #5d7f3e 100%);
+      color: #fff;
+      padding: 12px 28px;
       border: none;
       border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
       cursor: pointer;
-      width: 100%;
-      transition: background-color 0.3s;
     }
-    .custom-upload-btn {
-      display: inline-block;
+    .action-buttons button:hover,
+    .action-buttons label:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(93,127,62,0.15);
+    }
+    .action-buttons button:active,
+    .action-buttons label:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+    .upload-btn::before {
+      content: "📁";
+      font-size: 1.2rem;
+    }
+    .submit-btn::before {
+      content: "🔍";
+      font-size: 1.2rem;
+    }
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 20px;
+      position: relative;
+      padding-left: 30px;
+    }
+    .section-title::before {
+      content: "👕";
+      position: absolute;
+      left: 0;
+    }
+    .products-section .section-title::before {
+      content: "🛍️";
+    }
+    .product-list {
+      padding: 0;
+      list-style-type: none;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    .product-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    .product-list::-webkit-scrollbar-track {
+      background: var(--accent);
+      border-radius: 10px;
+    }
+    .product-list::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 10px;
+    }
+    .product-item {
+      margin-bottom: 25px;
+      border-bottom: 1px solid var(--accent);
+      padding-bottom: 20px;
+    }
+    .product-item h3 {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--primary);
+    }
+    .product-item img {
+      max-width: 100px;
+      border-radius: 8px;
+      margin-top: 10px;
+      border: 1px solid var(--border);
+    }
+    .product-item a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .product-item a:hover {
+      text-decoration: underline;
+    }
+    #loader {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--primary);
+    }
+    .loader-spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid var(--accent);
+      border-top: 5px solid var(--primary);
+      border-radius: 50%;
+      margin: 0 auto 20px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .recommendation-box {
+      margin-top: 20px;
+      padding: 15px;
+      background: var(--accent);
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+    .recommendation-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--primary);
+    }
+    .recommendation-text {
+      color: var(--text);
+    }
+    .placeholder-content {
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f7f7f7;
+      border-radius: 12px;
+      color: #888;
+      font-style: italic;
+      text-align: center;
+      padding: 20px;
+    }
+    .flashes {
+      color: #e53e3e;
+      margin-bottom: 15px;
+      font-weight: 600;
+      text-align: center;
+    }
+    /* Mobile menu toggle */
+    .mobile-menu-button {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.5rem;
+    }
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
       background: var(--primary);
       color: white;
-      padding: 10px 20px;
+      padding: 12px 24px;
       border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 1000;
     }
-
-    .custom-upload-btn:hover {
-      background: #4a6632;
+    .toast.show {
+      opacity: 1;
     }
-
+    /* Responsive adjustments */
+    @media (max-width: 992px) {
+      .container {
+        padding: 15px;
+      }
+      .recommend-card {
+        padding: 30px 20px;
+      }
+    }
+    @media (max-width: 768px) {
+      .two-column-layout {
+        flex-direction: column;
+      }
+      .nav-links {
+        gap: 2px;
+      }
+      .nav-links a {
+        font-size: 0.9rem;
+        padding: 8px 12px;
+      }
+      .section-title {
+        font-size: 1.1rem;
+      }
+      h1 {
+        font-size: 1.5rem !important;
+      }
+    }
+    @media (max-width: 640px) {
+      .recommend-card {
+        padding: 20px 15px;
+        border-radius: 16px;
+      }
+      .main {
+        padding: 70px 0 10px;
+      }
+      .mobile-menu-button {
+        display: block;
+      }
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        left: 0;
+        flex-direction: column;
+        background: white;
+        padding: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border-radius: 0 0 8px 8px;
+      }
+      .nav-links.show {
+        display: flex;
+      }
+      .nav-links a {
+        width: 100%;
+        text-align: center;
+        padding: 12px;
+      }
+      .action-buttons {
+        flex-direction: column;
+        gap: 10px;
+      }
+      .action-buttons button,
+      .action-buttons label {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
-  <nav class="flex justify-between items-center px-8 py-4 shadow-sm bg-white/50 fixed backdrop-blur-sm w-full top-0 z-50">
-    <!-- Logo + tên -->
+  <nav class="fixed top-0 w-full bg-white/50 backdrop-blur-sm shadow-sm px-8 py-4 flex justify-between items-center z-50">
     <div class="text-2xl font-bold text-green-800 flex items-center gap-2">
       <a href="{{ url_for('home') }}" class="flex items-center gap-2 group">
-        <span class="text-2xl">🧥</span>
-        <span class="group-hover:underline">OutfitAI</span>
+        <span class="text-2xl">🧥</span><span class="group-hover:underline">OutfitAI</span>
       </a>
     </div>
-
-    <!-- Các nút điều hướng -->
-    <div class="flex gap-6 items-center text-green-800 font-medium">
-       <a href="{{ url_for('outfit_recommend') }}" class="hover:underline">Outfit Recommend</a>
+    <button class="mobile-menu-button" id="mobileMenuButton">
+      ☰
+    </button>
+    <div class="nav-links text-green-800 font-medium" id="navLinks">
+      <a href="{{ url_for('outfit_recommend') }}" class="hover:underline">Outfit Recommend</a>
       <a href="{{ url_for('tryon_outfit') }}" class="hover:underline">Try On</a>
       <a href="{{ url_for('generate_outfit') }}" class="bg-green-800 text-white px-4 py-2 rounded-md hover:bg-green-700">Generate Outfit</a>
     </div>
   </nav>
 
-  <div class="border">
-    <h1 style="text-align: center; padding: 20px; background-color: #fff; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">Outfit & Shopping Recommendations</h1>
-  </div>
-
-  <div class="container">
-    <!-- LEFT: Upload Image -->
-    <div class="images">
-      <h2>Upload Your Image</h2>
-      <form method="POST" enctype="multipart/form-data">
-        <div class="preview-area">
-          {% if image_path %}
-            <img id="image-preview" src="{{ url_for('static', filename='uploads/' + filename) }}" alt="Uploaded Image">
-          {% else %}
-            <img id="image-preview" style="display:none;" alt="Uploaded Image">
+  <main class="main">
+    <div class="container">
+      <div class="recommend-card">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="flashes">
+              {% for msg in messages %}<div>{{ msg }}</div>{% endfor %}
+            </div>
           {% endif %}
-        </div>
-        <input type="file" name="image" accept="image/*" id="image-upload" onchange="previewImage(event)" style="display: none;" />
-        <label for="image-upload" class="bg-green-700 text-white px-5 py-2 rounded-md font-semibold hover:bg-green-800">Upload Image</label>
-        <br><br>
-        <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-green-700">Outfit Recommend</button>
-      </form>
-    </div>
+        {% endwith %}
 
-    <!-- RIGHT: Product Recommendations -->
-    <div class="products">
-      <h2>Related Products</h2>
-      {% if query %}
-        <div id="loader">
-          <p>Loading products...</p>
+        <h1 class="text-2xl font-bold text-center text-green-800 mb-8">Outfit Recommendation</h1>
+
+        <div class="two-column-layout">
+          <!-- LEFT COLUMN: Always shows upload section -->
+          <div class="upload-section">
+            <h2 class="section-title">Upload Your Image</h2>
+            <form method="POST" enctype="multipart/form-data">
+              <div class="upload-container">
+                <div class="preview-area">
+                  {% if image_path %}
+                    <img id="image-preview" src="{{ url_for('static', filename='uploads/' + filename) }}" alt="Uploaded Image">
+                  {% else %}
+                    <img id="image-preview" style="display:none;" alt="Uploaded Image">
+                    <div id="upload-placeholder" class="text-gray-400">Upload an image to get<br>outfit recommendations</div>
+                  {% endif %}
+                </div>
+                <input type="file" name="image" accept="image/*" id="image-upload" onchange="previewImage(event)" style="display: none;">
+                <div class="action-buttons">
+                  <label for="image-upload" class="upload-btn">Choose Image</label>
+                  <button type="submit" class="submit-btn">Get Recommendations</button>
+                </div>
+              </div>
+            </form>
+
+            {% if query %}
+              <div class="recommendation-box">
+                <p class="recommendation-title">Recommended outfit combination:</p>
+                <p class="recommendation-text">{{ query }}</p>
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- RIGHT COLUMN: Shows products or placeholder -->
+          <div class="products-section">
+            <h2 class="section-title">Recommended Products</h2>
+
+            {% if query %}
+              <div id="loader">
+                <div class="loader-spinner"></div>
+                <p>Searching for matching products...</p>
+              </div>
+              <ul id="product-list" class="product-list" style="display: none;"></ul>
+            {% else %}
+              <div class="placeholder-content">
+                Upload an image on the left and submit to see product recommendations here
+              </div>
+            {% endif %}
+          </div>
         </div>
-        <ul id="product-list"></ul>
-      {% else %}
-        <p>No outfit generated yet.</p>
-      {% endif %}
+      </div>
     </div>
-  </div>
+  </main>
+
+  <div id="toast" class="toast">Processing complete!</div>
 
   <script>
+    // Mobile menu toggle
+    const mobileMenuButton = document.getElementById('mobileMenuButton');
+    const navLinks = document.getElementById('navLinks');
+
+    if (mobileMenuButton) {
+      mobileMenuButton.addEventListener('click', () => {
+        navLinks.classList.toggle('show');
+      });
+    }
+
     function previewImage(event) {
       const imagePreview = document.getElementById('image-preview');
+      const placeholder = document.getElementById('upload-placeholder');
       const file = event.target.files[0];
+
       if (file) {
         const reader = new FileReader();
-        reader.onload = function () {
+        reader.onload = function() {
           imagePreview.src = reader.result;
           imagePreview.style.display = "block";
+          if (placeholder) placeholder.style.display = "none";
+
+          // Show toast notification
+          const toast = document.getElementById('toast');
+          toast.textContent = "Image selected successfully!";
+          toast.classList.add('show');
+
+          // Hide toast after 3 seconds
+          setTimeout(() => {
+            toast.classList.remove('show');
+          }, 3000);
         };
         reader.readAsDataURL(file);
       }
@@ -193,19 +464,22 @@
         .then(items => {
           const productList = document.getElementById("product-list");
           const loader = document.getElementById("loader");
-          productList.innerHTML = "";
+
+          // Hide loader and show product list
           loader.style.display = "none";
+          productList.style.display = "block";
 
           if (items.length === 0) {
-            productList.innerHTML = "<p>No products found.</p>";
+            productList.innerHTML = "<p class='text-center py-4'>No products found. Try with a different image.</p>";
           } else {
             items.forEach((item, index) => {
               const li = document.createElement("li");
+              li.className = "product-item";
               li.innerHTML = `
-                <h3>[${index + 1}] ${item.title}</h3>
+                <h3>${item.title}</h3>
                 <p>💰 Price: ${item.price || "N/A"}</p>
-                <p>🛍️ Source: ${item.source || "N/A"}</p>
-                <p><a href="${item.link}" target="_blank">🔗 View Product</a></p>
+                <p>🏬 Source: ${item.source || "N/A"}</p>
+                <p class="mt-2"><a href="${item.link}" target="_blank">View Product →</a></p>
                 ${item.thumbnail ? `<img src="${item.thumbnail}" alt="${item.title}">` : "<p>No image available</p>"}
               `;
               productList.appendChild(li);
@@ -215,7 +489,11 @@
         .catch(err => {
           console.error("Error fetching product data:", err);
           const productList = document.getElementById("product-list");
-          productList.innerHTML = "<p>Error loading products. Please try again later.</p>";
+          const loader = document.getElementById("loader");
+
+          loader.style.display = "none";
+          productList.style.display = "block";
+          productList.innerHTML = "<p class='text-center py-4 text-red-600'>Error loading products. Please try again later.</p>";
         });
     {% endif %}
   </script>

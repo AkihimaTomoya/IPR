@@ -3,13 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TryOn.AI</title>
+    <title>Try On Cloth</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
       :root {
         --primary: #5d7f3e;
+        --primary-hover: #4a6632;
         --bg-gradient: linear-gradient(135deg, #f0f7ef 0%, #e5e9ec 100%);
         --card: #fff;
         --shadow: 0 6px 24px rgba(93,127,62,0.09), 0 1.5px 4px rgba(93,127,62,0.06);
@@ -18,6 +19,12 @@
         --highlight: #b5e08d;
         --accent: #e8f7e0;
       }
+      html::-webkit-scrollbar,
+      body::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+        background: transparent;
+      }
       html, body { height: 100%; }
       * { box-sizing: border-box; margin: 0; padding: 0; }
       body {
@@ -25,6 +32,10 @@
         background: var(--bg-gradient);
         color: var(--text);
         min-height: 100vh;
+        /* Hide scrollbar */
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        overflow-y: auto;
       }
       .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
       .main { padding: 80px 0 20px; }
@@ -36,17 +47,34 @@
         margin-bottom: 40px;
         border: 1.5px solid var(--accent);
       }
-      .tryon-form { display: flex; flex-wrap: wrap; gap: 34px; justify-content: space-between; }
-      .form-section { flex: 1 1 300px; min-width: 260px; }
-      .form-section h2 {
-        font-size: 1.11rem; font-weight: 700; color: var(--primary);
-        margin-bottom: 15px;
+      .tryon-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 34px;
+        justify-content: space-between;
       }
-      .form-section h2::before { content: "👤"; margin-right: 6px; }
+      .form-section {
+        flex: 1 1 300px;
+        min-width: 260px;
+      }
+      .form-section h2 {
+        font-size: 1.11rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        line-height: 1.4;
+      }
+      .form-section h2::before {
+        content: "👤";
+        margin-right: 6px;
+        flex-shrink: 0;
+      }
       .form-section:nth-child(2) h2::before { content: "🧥"; }
       .preview-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
         gap: 18px;
       }
       .preview-container {
@@ -65,16 +93,26 @@
       }
       .preview-container input[type="radio"] { display: none; }
       .preview-img {
-        width: 100%; aspect-ratio: 1/1; object-fit: cover;
-        border-radius: 10px; border: 2.5px solid transparent;
+        width: 100%;
+        aspect-ratio: 1/1;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 2.5px solid transparent;
         transition: transform 0.2s, border-color 0.2s;
         background: #f4f8f1;
       }
       .check-icon {
-        position: absolute; top: 10px; right: 10px;
-        background: var(--primary); color: #fff;
-        border-radius: 50%; width: 26px; height: 26px;
-        display: none; align-items: center; justify-content: center;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: var(--primary);
+        color: #fff;
+        border-radius: 50%;
+        width: 26px;
+        height: 26px;
+        display: none;
+        align-items: center;
+        justify-content: center;
         font-size: 1.1rem;
       }
       .preview-container input[type="radio"]:checked + .preview-img + .check-icon {
@@ -82,211 +120,458 @@
         animation: popIn 0.35s;
       }
       @keyframes popIn { from { transform: scale(0.2);} to { transform: scale(1);} }
-      .disabled { opacity: 0.35; pointer-events: none; filter: grayscale(0.7); }
+      .disabled {
+        opacity: 0.35;
+        pointer-events: none;
+        filter: grayscale(0.7);
+      }
 
       /* Styles for upload-as-sample */
       .upload-container { position: relative; }
-      .upload-container .preview-img { display: flex; align-items: center; justify-content: center; font-size: 2rem; background: var(--accent); }
+      .upload-container .preview-img {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        background: var(--accent);
+      }
       .file-upload-input {
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        opacity: 0; cursor: pointer;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
       }
 
-      .submit-tryon { text-align: center; margin-top: 28px; }
+      .submit-tryon {
+        text-align: center;
+        margin-top: 28px;
+      }
       .submit-button {
         background: linear-gradient(90deg, #7dac6b 0%, #5d7f3e 100%);
-        color: #fff; padding: 14px 36px; border: none; border-radius: 8px;
-        font-size: 1.1rem; font-weight: 600; cursor: pointer;
+        color: #fff;
+        padding: 14px 36px;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
       }
-      .submit-button:hover { opacity: 0.9; }
+      .submit-button:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(93,127,62,0.15);
+      }
+      .submit-button:active {
+        transform: translateY(0);
+        box-shadow: none;
+      }
+
       .result-section {
-      margin-top: 40px;
-      text-align: center;
-      display: flex;
-    flex-direction: column;
-    align-items: center;
-    }
+        margin-top: 40px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
 
-    .result-section h2 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 20px;
-    }
+      .result-section h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 20px;
+      }
 
-    .result-image {
-      max-width: 100%;
-      width: 420px;
-      border-radius: 20px;
-      box-shadow: var(--shadow);
-      margin-bottom: 24px;
-      border: 2px solid var(--accent);
-    }
+      .result-image {
+        max-width: 100%;
+        width: 420px;
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        margin-bottom: 24px;
+        border: 2px solid var(--accent);
+      }
 
-    .action-buttons {
-      display: flex;
-      gap: 18px;
-      justify-content: center;
-      margin-top: 10px;
-    }
+      .action-buttons {
+        display: flex;
+        gap: 18px;
+        justify-content: center;
+        margin-top: 10px;
+      }
 
-    .action-buttons button,
-    .action-buttons a {
-      background: var(--primary);
-      color: #fff;
-      padding: 10px 24px;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1rem;
-      text-decoration: none;
-      transition: background 0.2s;
-    }
+      .action-buttons button,
+      .action-buttons a {
+        background: linear-gradient(90deg, #7dac6b 0%, #5d7f3e 100%);
+        color: #fff;
+        padding: 10px 24px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
-    .action-buttons button:hover,
-    .action-buttons a:hover {
-      background: #4a6632;
-    }
+      .action-buttons button:hover,
+      .action-buttons a:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(93,127,62,0.15);
+      }
 
+      .action-buttons button:active,
+      .action-buttons a:active {
+        transform: translateY(0);
+        box-shadow: none;
+      }
+
+      .flashes {
+        color: #e53e3e;
+        margin-bottom: 15px;
+        font-weight: 600;
+        text-align: center;
+      }
+
+      /* Mobile menu toggle */
+      .mobile-menu-button {
+        display: none;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1.5rem;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+      }
+
+      /* Toast notification */
+      .toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--primary);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 1000;
+      }
+
+      .toast.show {
+        opacity: 1;
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 992px) {
+        .container {
+          padding: 15px;
+        }
+        .try-on-card {
+          padding: 30px 20px;
+        }
+        .tryon-form {
+          gap: 24px;
+        }
+        .preview-grid {
+          grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+          gap: 12px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .try-on-card {
+          padding: 25px 18px;
+          border-radius: 20px;
+        }
+        .tryon-form {
+          flex-direction: column;
+          gap: 30px;
+        }
+        .form-section {
+          min-width: 100%;
+        }
+        .preview-grid {
+          grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+          gap: 10px;
+        }
+        .check-icon {
+          width: 22px;
+          height: 22px;
+          font-size: 0.9rem;
+        }
+        .nav-links {
+          gap: 2px;
+        }
+        .nav-links a {
+          font-size: 0.9rem;
+          padding: 8px 12px;
+        }
+        .result-image {
+          width: 95%;
+        }
+        .form-section h2 {
+          font-size: 1rem;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .main {
+          padding: 70px 0 10px;
+        }
+        .try-on-card {
+          padding: 20px 15px;
+          border-radius: 16px;
+        }
+        .preview-grid {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
+        }
+        .submit-button {
+          padding: 12px 30px;
+          font-size: 1rem;
+          width: 100%;
+          max-width: 280px;
+        }
+        .form-section h2 {
+          font-size: 0.95rem;
+        }
+        .action-buttons {
+          flex-direction: column;
+          width: 100%;
+          max-width: 280px;
+          gap: 10px;
+        }
+        .action-buttons button,
+        .action-buttons a {
+          width: 100%;
+        }
+
+        /* Mobile navigation */
+        .mobile-menu-button {
+          display: block;
+        }
+        .nav-links {
+          display: none;
+          position: absolute;
+          top: 100%;
+          right: 0;
+          left: 0;
+          flex-direction: column;
+          background: white;
+          padding: 10px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+          border-radius: 0 0 8px 8px;
+          z-index: 100;
+        }
+        .nav-links.show {
+          display: flex;
+        }
+        .nav-links a {
+          width: 100%;
+          text-align: center;
+          padding: 12px;
+        }
+      }
+
+      @media (max-width: 380px) {
+        .preview-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .try-on-card {
+          padding: 15px 12px;
+        }
+      }
     </style>
   </head>
 
   <body>
+    <nav class="fixed top-0 w-full bg-white/50 backdrop-blur-sm shadow-sm px-8 py-4 flex justify-between items-center z-50">
+      <div class="text-2xl font-bold text-green-800 flex items-center gap-2">
+        <a href="{{ url_for('home') }}" class="flex items-center gap-2 group">
+          <span class="text-2xl">🧥</span><span class="group-hover:underline">OutfitAI</span>
+        </a>
+      </div>
+      <button class="mobile-menu-button" id="mobileMenuButton">
+        ☰
+      </button>
+      <div class="nav-links text-green-800 font-medium" id="navLinks">
+        <a href="{{ url_for('outfit_recommend') }}" class="hover:underline">Outfit Recommend</a>
+        <a href="{{ url_for('tryon_outfit') }}" class="hover:underline">Try On</a>
+        <a href="{{ url_for('generate_outfit') }}" class="bg-green-800 text-white px-4 py-2 rounded-md hover:bg-green-700">Generate Outfit</a>
+      </div>
+    </nav>
 
-        <nav class="fixed top-0 w-full bg-white/50 backdrop-blur-sm shadow-sm px-8 py-4 flex justify-between items-center">
-          <div class="text-2xl font-bold text-green-800 flex items-center gap-2">
-            <a href="{{ url_for('home') }}" class="flex items-center gap-2 group">
-              <span class="text-2xl">🧥</span><span class="group-hover:underline">OutfitAI</span>
-            </a>
-          </div>
-          <div class="flex gap-6 items-center text-green-800 font-medium">
-            <a href="{{ url_for('outfit_recommend') }}" class="hover:underline">Outfit Recommend</a>
-            <a href="{{ url_for('tryon_outfit') }}" class="hover:underline">Try On</a>
-            <a href="{{ url_for('generate_outfit') }}" class="bg-green-800 text-white px-4 py-2 rounded-md hover:bg-green-700">Generate Outfit</a>
-          </div>
-        </nav>
-
-    <main class="main">
-        <div class="try-on-card">
-          <form id="tryonForm" method="post" enctype="multipart/form-data">
-            {% with messages = get_flashed_messages() %}
-              {% if messages %}
-                <div class="flashes">
-                  {% for msg in messages %}<div>{{ msg }}</div>{% endfor %}
-                </div>
-              {% endif %}
-            {% endwith %}
-
-            <div class="tryon-form">
-              <!-- Person Section -->
-              <div class="form-section">
-                <h2>1. Upload your image or choose sample</h2>
-                <div class="preview-grid" id="personSamples">
-                  {% for path in sample_people %}
-                  <label class="preview-container">
-                    <input type="radio" name="sample_person" value="{{ path }}" />
-                    <img src="/{{ path }}" alt="Sample person {{ loop.index }}" class="preview-img" />
-                    <span class="check-icon">✔️</span>
-                  </label>
-                  {% endfor %}
-                  <label class="preview-container upload-container">
-                    <input type="radio" name="sample_person" value="upload" />
-                    <div class="preview-img">📁</div>
-                    <span class="check-icon">✔️</span>
-                    <input type="file" name="person_image" accept="image/*" class="file-upload-input" />
-                  </label>
-                </div>
+    <main class="main container">
+      <div class="try-on-card">
+        <form id="tryonForm" method="post" enctype="multipart/form-data">
+          {% with messages = get_flashed_messages() %}
+            {% if messages %}
+              <div class="flashes">
+                {% for msg in messages %}<div>{{ msg }}</div>{% endfor %}
               </div>
+            {% endif %}
+          {% endwith %}
 
-              <!-- Outfit Section -->
-              <div class="form-section">
-                <h2>2. Upload outfit image or choose sample</h2>
-                <div class="preview-grid" id="outfitSamples">
-                  {% for path in sample_outfits %}
-                  <label class="preview-container">
-                    <input type="radio" name="sample_outfit" value="{{ path }}" />
-                    <img src="/{{ path }}" alt="Sample outfit {{ loop.index }}" class="preview-img" />
-                    <span class="check-icon">✔️</span>
-                  </label>
-                  {% endfor %}
-                  <label class="preview-container upload-container">
-                    <input type="radio" name="sample_outfit" value="upload" />
-                    <div class="preview-img">📁</div>
-                    <span class="check-icon">✔️</span>
-                    <input type="file" name="outfit_image" accept="image/*" class="file-upload-input" />
-                  </label>
-                </div>
+          <div class="tryon-form">
+            <!-- Person Section -->
+            <div class="form-section">
+              <h2>1. Upload your image or choose sample</h2>
+              <div class="preview-grid" id="personSamples">
+                {% for path in sample_people %}
+                <label class="preview-container">
+                  <input type="radio" name="sample_person" value="{{ path }}" />
+                  <img src="/{{ path }}" alt="Sample person {{ loop.index }}" class="preview-img" />
+                  <span class="check-icon">✔️</span>
+                </label>
+                {% endfor %}
+                <label class="preview-container upload-container">
+                  <input type="radio" name="sample_person" value="upload" />
+                  <div class="preview-img">📁</div>
+                  <span class="check-icon">✔️</span>
+                  <input type="file" name="person_image" accept="image/*" class="file-upload-input" />
+                </label>
               </div>
             </div>
 
-            <div class="submit-tryon">
-              <button type="submit" class="submit-button">✨ Try On</button>
-            </div>
-          </form>
-
-          {% if tryon_result %}
-          <div class="result-section">
-            <h2>Result</h2>
-            <img src="/{{ tryon_result }}" alt="Try-On Result" class="result-image" />
-            <div class="action-buttons">
-              <button onclick="window.location.href=window.location.pathname">Retry</button>
-              <a href="/{{ tryon_result }}" download>Download</a>
+            <!-- Outfit Section -->
+            <div class="form-section">
+              <h2>2. Upload outfit image or choose sample</h2>
+              <div class="preview-grid" id="outfitSamples">
+                {% for path in sample_outfits %}
+                <label class="preview-container">
+                  <input type="radio" name="sample_outfit" value="{{ path }}" />
+                  <img src="/{{ path }}" alt="Sample outfit {{ loop.index }}" class="preview-img" />
+                  <span class="check-icon">✔️</span>
+                </label>
+                {% endfor %}
+                <label class="preview-container upload-container">
+                  <input type="radio" name="sample_outfit" value="upload" />
+                  <div class="preview-img">📁</div>
+                  <span class="check-icon">✔️</span>
+                  <input type="file" name="outfit_image" accept="image/*" class="file-upload-input" />
+                </label>
+              </div>
             </div>
           </div>
-          {% endif %}
+
+          <div class="submit-tryon">
+            <button type="submit" class="submit-button">✨ Try On</button>
+          </div>
+        </form>
+
+        {% if tryon_result %}
+        <div class="result-section">
+          <h2>Result</h2>
+          <img src="/{{ tryon_result }}" alt="Try-On Result" class="result-image" />
+          <div class="action-buttons">
+            <button onclick="window.location.href=window.location.pathname">Retry</button>
+            <a href="/{{ tryon_result }}" download>Download</a>
+          </div>
         </div>
+        {% endif %}
       </div>
     </main>
 
+    <div id="toast" class="toast">Action completed!</div>
+
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-          document.querySelectorAll('.upload-container .file-upload-input').forEach(input => {
-            const uploadLabel = input.closest('label');
-            input.addEventListener('change', () => {
-              if (!input.files.length) return;
-              const radio = uploadLabel.querySelector('input[type="radio"]');
-              radio.checked = true;
+      document.addEventListener('DOMContentLoaded', () => {
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobileMenuButton');
+        const navLinks = document.getElementById('navLinks');
 
-              const groupName = radio.name;
-              document.querySelectorAll(`input[name="${groupName}"]`).forEach(r => {
-                if (r !== radio) r.checked = false;
-              });
-
-              const file = input.files[0];
-              const reader = new FileReader();
-              reader.onload = function(e) {
-                const previewDiv = uploadLabel.querySelector('.preview-img');
-                previewDiv.innerHTML = '';
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.className = 'preview-img';
-                previewDiv.replaceWith(img);
-              };
-              reader.readAsDataURL(file);
-            });
+        if (mobileMenuButton) {
+          mobileMenuButton.addEventListener('click', () => {
+            navLinks.classList.toggle('show');
           });
+        }
 
-          document.querySelectorAll('input[type=radio][name^="sample_"]').forEach(radio => {
-            radio.addEventListener('change', () => {
-              if (radio.value !== 'upload') {
-                const grid = radio.closest('.preview-grid');
-                const uploadLabel = grid.querySelector('.upload-container');
-                const fileInput = uploadLabel.querySelector('.file-upload-input');
-                fileInput.value = '';
+        // Handle file uploads
+        document.querySelectorAll('.upload-container .file-upload-input').forEach(input => {
+          const uploadLabel = input.closest('label');
+          input.addEventListener('change', () => {
+            if (!input.files.length) return;
+            const radio = uploadLabel.querySelector('input[type="radio"]');
+            radio.checked = true;
 
-                // Reset lại ô 📁
-                const existingImg = uploadLabel.querySelector('img.preview-img');
-                if (existingImg) {
-                  const div = document.createElement('div');
-                  div.className = 'preview-img';
-                  div.textContent = '📁';
-                  existingImg.replaceWith(div);
-                }
-              }
+            const groupName = radio.name;
+            document.querySelectorAll(`input[name="${groupName}"]`).forEach(r => {
+              if (r !== radio) r.checked = false;
             });
+
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              const previewDiv = uploadLabel.querySelector('.preview-img');
+              previewDiv.innerHTML = '';
+              const img = document.createElement('img');
+              img.src = e.target.result;
+              img.className = 'preview-img';
+              previewDiv.replaceWith(img);
+
+              // Show toast notification
+              const toast = document.getElementById('toast');
+              toast.textContent = "Image uploaded successfully!";
+              toast.classList.add('show');
+
+              // Hide toast after 3 seconds
+              setTimeout(() => {
+                toast.classList.remove('show');
+              }, 3000);
+            };
+            reader.readAsDataURL(file);
           });
         });
 
+        // Handle radio button changes
+        document.querySelectorAll('input[type=radio][name^="sample_"]').forEach(radio => {
+          radio.addEventListener('change', () => {
+            if (radio.value !== 'upload') {
+              const grid = radio.closest('.preview-grid');
+              const uploadLabel = grid.querySelector('.upload-container');
+              const fileInput = uploadLabel.querySelector('.file-upload-input');
+              fileInput.value = '';
+
+              // Reset the upload icon
+              const existingImg = uploadLabel.querySelector('img.preview-img');
+              if (existingImg) {
+                const div = document.createElement('div');
+                div.className = 'preview-img';
+                div.textContent = '📁';
+                existingImg.replaceWith(div);
+              }
+            }
+          });
+        });
+
+        // Add click handlers for action buttons
+        const downloadButton = document.querySelector('.action-buttons a[download]');
+        if (downloadButton) {
+          downloadButton.addEventListener('click', function() {
+            const toast = document.getElementById('toast');
+            toast.textContent = "Download started!";
+            toast.classList.add('show');
+
+            setTimeout(() => {
+              toast.classList.remove('show');
+            }, 3000);
+          });
+        }
+      });
     </script>
   </body>
 </html>

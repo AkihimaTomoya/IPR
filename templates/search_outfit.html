@@ -3,156 +3,505 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.tailwindcss.com"></script>
   <title>Search & Outfit</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    :root {
+      --primary: #5d7f3e;
+      --primary-hover: #4a6632;
+      --bg-gradient: linear-gradient(135deg, #f0f7ef 0%, #e5e9ec 100%);
+      --card: #fff;
+      --shadow: 0 6px 24px rgba(93,127,62,0.09), 0 1.5px 4px rgba(93,127,62,0.06);
+      --border: #e6e6e6;
+      --text: #333;
+      --highlight: #b5e08d;
+      --accent: #e8f7e0;
+    }
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      background: transparent;
+    }
+    html, body { height: 100%; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f4f4f4;
+      font-family: "Inter", sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text);
+      min-height: 100vh;
+      /* Hide scrollbar */
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+      overflow-y: auto;
     }
 
     .container {
-      display: flex;
-      gap: 40px;
-      padding: 20px;
-      justify-content: space-between;
       max-width: 1200px;
       margin: 0 auto;
-    }
-
-    .products, .images {
-      flex: 1;
-      background-color: #fff;
       padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
 
-    .products h2, .images h2 {
-      font-size: 24px;
+    .main {
+      padding: 80px 0 20px;
+    }
+
+    .outfit-card {
+      background: var(--card);
+      border-radius: 24px;
+      padding: 40px 32px;
+      box-shadow: var(--shadow);
+      margin-bottom: 40px;
+      border: 1.5px solid var(--accent);
+    }
+
+    .two-column-layout {
+      display: flex;
+      gap: 30px;
+    }
+
+    .outfit-section {
+      flex: 1;
+      min-width: 280px;
+    }
+
+    .products-section {
+      flex: 1;
+    }
+
+    .outfit-container {
+      background: var(--accent);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .outfit-display {
+      width: 100%;
       margin-bottom: 20px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #f4f8f1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
-    .products ul {
+    .outfit-image {
+      max-width: 100%;
+      max-height: 400px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 20px;
+      position: relative;
+      padding-left: 30px;
+    }
+
+    .section-title::before {
+      content: "👕";
+      position: absolute;
+      left: 0;
+    }
+
+    .products-section .section-title::before {
+      content: "🛍️";
+    }
+
+    .product-list {
       padding: 0;
       list-style-type: none;
+      max-height: 600px;
+      overflow-y: auto;
     }
 
-    .products li {
-      margin-bottom: 1.5em;
-      border-bottom: 1px solid #ddd;
-      padding-bottom: 10px;
+    .product-list::-webkit-scrollbar {
+      width: 6px;
     }
 
-    .products img {
+    .product-list::-webkit-scrollbar-track {
+      background: var(--accent);
+      border-radius: 10px;
+    }
+
+    .product-list::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 10px;
+    }
+
+    .product-item {
+      margin-bottom: 25px;
+      border-bottom: 1px solid var(--accent);
+      padding-bottom: 20px;
+    }
+
+    .product-item h3 {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--primary);
+    }
+
+    .product-item img {
       max-width: 100px;
-      display: block;
-      margin-bottom: 10px;
-      border-radius: 4px;
+      border-radius: 8px;
+      margin-top: 10px;
+      border: 1px solid var(--border);
     }
 
-    .products a {
-      color: #007bff;
+    .product-item a {
+      color: var(--primary);
       text-decoration: none;
-      font-weight: bold;
+      font-weight: 600;
     }
 
-    .products a:hover {
+    .product-item a:hover {
       text-decoration: underline;
     }
 
-    .images img {
-      width: 100%;
+    #loading-container {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--primary);
+    }
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid var(--accent);
+      border-top: 5px solid var(--primary);
+      border-radius: 50%;
+      margin: 0 auto 20px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .placeholder-content {
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f7f7f7;
+      border-radius: 12px;
+      color: #888;
+      font-style: italic;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .action-buttons button,
+    .action-buttons a {
+      background: linear-gradient(90deg, #7dac6b 0%, #5d7f3e 100%);
+      color: #fff;
+      padding: 12px 28px;
+      border: none;
       border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      font-weight: 600;
+      font-size: 1rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
     }
 
-    #loader {
-      margin-top: 1em;
+    .action-buttons button:hover,
+    .action-buttons a:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(93,127,62,0.15);
     }
 
-    progress {
-      width: 100%;
+    .action-buttons button:active,
+    .action-buttons a:active {
+      transform: translateY(0);
+      box-shadow: none;
     }
-    .border{
-      padding-top: 100px;
+
+    .download-btn::before {
+      content: "⬇️";
+      font-size: 1.2rem;
+    }
+
+    .retry-btn::before {
+      content: "🔄";
+      font-size: 1.2rem;
+    }
+
+    /* Navigation responsive styles */
+    .mobile-menu-button {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.5rem;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--primary);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 992px) {
+      .container {
+        padding: 15px;
+      }
+
+      .outfit-card {
+        padding: 30px 20px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .two-column-layout {
+        flex-direction: column;
+      }
+
+      .nav-links {
+        gap: 2px;
+      }
+
+      .nav-links a {
+        font-size: 0.9rem;
+        padding: 8px 12px;
+      }
+
+      .section-title {
+        font-size: 1.1rem;
+      }
+
+      h1 {
+        font-size: 1.5rem !important;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .outfit-card {
+        padding: 20px 15px;
+        border-radius: 16px;
+      }
+
+      .main {
+        padding: 70px 0 10px;
+      }
+
+      .mobile-menu-button {
+        display: block;
+      }
+
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        left: 0;
+        flex-direction: column;
+        background: white;
+        padding: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border-radius: 0 0 8px 8px;
+      }
+
+      .nav-links.show {
+        display: flex;
+      }
+
+      .nav-links a {
+        width: 100%;
+        text-align: center;
+        padding: 12px;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .action-buttons button,
+      .action-buttons a {
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
-  <nav class="flex justify-between items-center px-8 py-4 shadow-sm bg-white/50 fixed backdrop-blur-sm w-full top-0 z-50">
-    <!-- Logo + tên -->
+  <nav class="fixed top-0 w-full bg-white/50 backdrop-blur-sm shadow-sm px-8 py-4 flex justify-between items-center z-50">
     <div class="text-2xl font-bold text-green-800 flex items-center gap-2">
       <a href="{{ url_for('home') }}" class="flex items-center gap-2 group">
-        <span class="text-2xl">🧥</span>
-        <span class="group-hover:underline">OutfitAI</span>
+        <span class="text-2xl">🧥</span><span class="group-hover:underline">OutfitAI</span>
       </a>
     </div>
-  
-    <!-- Các nút điều hướng -->
-    <div class="flex gap-6 items-center text-green-800 font-medium">
-       <a href="{{ url_for('outfit_recommend') }}" class="hover:underline">Outfit Recommend</a>
-      <a href="{{ url_for('tryon_outfit') }}" class="hover:underline">Try On</a>  
+    <button class="mobile-menu-button" id="mobileMenuButton">
+      ☰
+    </button>
+    <div class="nav-links text-green-800 font-medium" id="navLinks">
+      <a href="{{ url_for('outfit_recommend') }}" class="hover:underline">Outfit Recommend</a>
+      <a href="{{ url_for('tryon_outfit') }}" class="hover:underline">Try On</a>
       <a href="{{ url_for('generate_outfit') }}" class="bg-green-800 text-white px-4 py-2 rounded-md hover:bg-green-700">Generate Outfit</a>
     </div>
   </nav>
-  
-  <div class="border">
-    <h1 style="text-align: center; padding: 20px; background-color: #fff; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">Generated Outfit & Shopping Recommendations</h1>
-  </div>
 
-  <div class="container">
-    <!-- LEFT: Generated Outfit Image -->
-    <div class="images">
-      <h2>Your Generated Outfit</h2>
-      {% if images %}
-        <img src="{{ images[0] }}" alt="Generated Outfit">
-      {% else %}
-        <p>No image generated yet.</p>
-      {% endif %}
-    </div>
+  <main class="main">
+    <div class="container">
+      <div class="outfit-card">
+        <h1 class="text-2xl font-bold text-center text-green-800 mb-8">Generated Outfit & Shopping Recommendations</h1>
 
-    <!-- RIGHT: Product Recommendations -->
-    <div class="products">
-      <h2>Related Products</h2>
-      <ul id="product-list"></ul>
-      <p id="loading-message">Loading products...</p>
+        <div class="two-column-layout">
+          <!-- LEFT COLUMN: Generated Outfit Image -->
+          <div class="outfit-section">
+            <h2 class="section-title">Your Generated Outfit</h2>
+            <div class="outfit-container">
+              <div class="outfit-display">
+                {% if images %}
+                  <img class="outfit-image" src="{{ images[0] }}" alt="Generated Outfit">
+                {% else %}
+                  <div class="placeholder-content">
+                    No outfit has been generated yet
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+            <div class="action-buttons">
+              <button class="retry-btn" onclick="window.location.href=window.location.pathname">
+                Retry
+              </button>
+              {% if images %}
+                <a href="{{ images[0] }}" download="generated-outfit.jpg" class="download-btn" id="downloadBtn">
+                  Download
+                </a>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: Product Recommendations -->
+          <div class="products-section">
+            <h2 class="section-title">Recommended Products</h2>
+
+            {% if query %}
+              <div id="loading-container">
+                <div class="loading-spinner"></div>
+                <p id="loading-message">Searching for matching products...</p>
+              </div>
+              <ul id="product-list" class="product-list" style="display: none;"></ul>
+            {% else %}
+              <div class="placeholder-content">
+                No product recommendations available
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
+  </main>
+
+  <div id="toast" class="toast">Download started!</div>
 
   <script>
+    // Mobile menu toggle
+    const mobileMenuButton = document.getElementById('mobileMenuButton');
+    const navLinks = document.getElementById('navLinks');
+
+    if (mobileMenuButton) {
+      mobileMenuButton.addEventListener('click', () => {
+        navLinks.classList.toggle('show');
+      });
+    }
+
+    // Download button functionality
+    const downloadBtn = document.getElementById('downloadBtn');
+    const toast = document.getElementById('toast');
+
+    if (downloadBtn) {
+      downloadBtn.addEventListener('click', function(e) {
+        // Show toast notification
+        toast.classList.add('show');
+
+        // Hide toast after 3 seconds
+        setTimeout(() => {
+          toast.classList.remove('show');
+        }, 3000);
+      });
+    }
+
     const query = "{{ query | urlencode }}";
     if (query) {
       fetch(`/search_data?query=${query}`)
         .then(response => response.json())
         .then(items => {
           const productList = document.getElementById("product-list");
-          const loadingMessage = document.getElementById("loading-message");
-          productList.innerHTML = "";
-          loadingMessage.style.display = "none";
+          const loadingContainer = document.getElementById("loading-container");
+
+          // Hide loader and show product list
+          loadingContainer.style.display = "none";
+          productList.style.display = "block";
 
           if (items.length === 0) {
-            productList.innerHTML = "<p>No products found.</p>";
+            productList.innerHTML = "<p class='text-center py-4'>No products found. Try with a different query.</p>";
           } else {
             items.forEach((item, index) => {
-              const product = document.createElement("li");
-              product.innerHTML = `
-                <h3>[${index + 1}] ${item.title}</h3>
+              const li = document.createElement("li");
+              li.className = "product-item";
+              li.innerHTML = `
+                <h3>${item.title}</h3>
                 <p>💰 Price: ${item.price || "N/A"}</p>
-                <p>🛍️ Source: ${item.source || "N/A"}</p>
-                <p><a href="${item.link}" target="_blank">🔗 View Product</a></p>
+                <p>🏬 Source: ${item.source || "N/A"}</p>
+                <p class="mt-2"><a href="${item.link}" target="_blank">View Product →</a></p>
                 ${item.thumbnail ? `<img src="${item.thumbnail}" alt="${item.title}">` : "<p>No image available</p>"}
               `;
-              productList.appendChild(product);
+              productList.appendChild(li);
             });
           }
         })
         .catch(err => {
           console.error("Error fetching product data:", err);
           const productList = document.getElementById("product-list");
-          productList.innerHTML = "<p>Error loading products. Please try again later.</p>";
+          const loadingContainer = document.getElementById("loading-container");
+
+          loadingContainer.style.display = "none";
+          productList.style.display = "block";
+          productList.innerHTML = "<p class='text-center py-4 text-red-600'>Error loading products. Please try again later.</p>";
         });
     }
   </script>

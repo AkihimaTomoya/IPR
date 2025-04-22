@@ -85,6 +85,13 @@
   <br>
     <div class="container">
       <form method="POST" enctype="multipart/form-data" action="{{ url_for('generate_outfit') }}">
+        {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                <div class="flashes">
+                  {% for msg in messages %}<div>{{ msg }}</div>{% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
         <!-- Gender -->
         <h2>Gender (Optional)</h2>
         <div class="preview-grid">

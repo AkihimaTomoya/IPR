@@ -4,21 +4,162 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Outfit Styler</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    :root {
+      --primary: #5d7f3e;
+      --primary-hover: #4a6632;
+      --bg-gradient: linear-gradient(135deg, #f0f7ef 0%, #fdfbf0 100%);
+      --card: #fff;
+      --shadow: 0 6px 24px rgba(93,127,62,0.09), 0 1.5px 4px rgba(93,127,62,0.06);
+      --border: #e6e6e6;
+      --text: #333;
+      --highlight: #b5e08d;
+      --accent: #e8f7e0;
+    }
     html, body {
-      background-color: #fdfbf0;
+      background: var(--bg-gradient);
       font-family: "Inter", sans-serif;
       /* Hide scrollbar */
       -ms-overflow-style: none;
       scrollbar-width: none;
       overflow-y: auto;
+      height: 100%;
+      color: var(--text);
     }
     html::-webkit-scrollbar,
     body::-webkit-scrollbar {
       width: 0;
       height: 0;
       background: transparent;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* Mobile menu toggle */
+    .mobile-menu-button {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.5rem;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    /* History card styling */
+    .history-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+      border: 1.5px solid var(--accent);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .history-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 28px rgba(93,127,62,0.12);
+    }
+
+    /* Pagination controls */
+    #pagination-controls button {
+      transition: all 0.2s ease;
+    }
+
+    #pagination-controls button:not(:disabled):hover {
+      transform: translateY(-2px);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 992px) {
+      .container {
+        padding: 15px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        gap: 10px;
+      }
+      .nav-links a {
+        font-size: 0.9rem;
+        padding: 8px 12px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      main {
+        padding-top: 70px !important;
+      }
+
+      h1 {
+        font-size: 2rem !important;
+        line-height: 1.2 !important;
+      }
+
+      p.text-xl {
+        font-size: 1rem !important;
+      }
+
+      /* Mobile navigation */
+      .mobile-menu-button {
+        display: block;
+      }
+
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        left: 0;
+        flex-direction: column;
+        background: white;
+        padding: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border-radius: 0 0 8px 8px;
+        z-index: 100;
+      }
+
+      .nav-links.show {
+        display: flex;
+      }
+
+      .nav-links a {
+        width: 100%;
+        text-align: center;
+        padding: 12px;
+      }
+
+      #history-container {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+      }
+
+      .history-card img {
+        height: 120px !important;
+      }
+    }
+
+    @media (max-width: 380px) {
+      #history-container {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+      }
+
+      .flex.flex-wrap.justify-center.gap-4 {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .bg-green-100.px-6.py-3 {
+        width: 100%;
+        max-width: 280px;
+        justify-content: center;
+      }
     }
   </style>
 </head>
@@ -32,7 +173,10 @@
         <span class="group-hover:underline">OutfitAI</span>
       </a>
     </div>
-    <div class="flex gap-6 items-center text-green-800 font-medium">
+    <button class="mobile-menu-button" id="mobileMenuButton">
+      ☰
+    </button>
+    <div class="nav-links text-green-800 font-medium" id="navLinks">
       <a href="{{ url_for('outfit_recommend') }}" class="hover:underline">Outfit Recommend</a>
       <a href="{{ url_for('tryon_outfit') }}" class="hover:underline">Try On</a>
       <a href="{{ url_for('generate_outfit') }}" class="bg-green-800 text-white px-4 py-2 rounded-md hover:bg-green-700">Generate Outfit</a>
@@ -59,28 +203,42 @@
     </a>
 
     <!-- Outfit History with Client-side Pagination -->
-    <section id="history-section" class="mt-20 px-4">
-      <h2 class="text-3xl font-bold text-green-900 mb-6 text-center">Outfit History</h2>
+    {% if history %}
+      <section id="history-section" class="mt-20 px-4">
+        <h2 class="text-3xl font-bold text-green-900 mb-6 text-center">Outfit History</h2>
 
-      <div id="history-container" class="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 text-left">
-        {% for entry in history %}
-        <div class="history-card bg-white shadow-md rounded-xl p-4 hover:shadow-lg transition">
-          <img src="{{ url_for('static', filename='generated/' ~ entry.filename) }}" alt="Generated Image" class="w-full h-48 object-cover rounded-lg mb-3" />
-          <p class="text-sm text-gray-600 mb-1">📌 <span class="font-medium">Description:</span> {{ entry.query }}</p>
-          <p class="text-sm text-gray-500 mb-3">⏰ <span class="font-medium">Created:</span> {{ entry.created_at }}</p>
-          <a href="{{ url_for('search_outfit', filename=entry.filename) }}" class="inline-block mt-auto text-emerald-700 font-semibold hover:underline">🔁 Search Again</a>
+        <div id="history-container" class="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 text-left">
+          {% for entry in history %}
+          <div class="history-card">
+            <img src="{{ url_for('static', filename='generated/' ~ entry.filename) }}" alt="Generated Image" class="w-full h-48 object-cover rounded-lg mb-3" />
+            <p class="text-sm text-gray-600 mb-1">📌 <span class="font-medium">Description:</span> {{ entry.query }}</p>
+            <p class="text-sm text-gray-500 mb-3">⏰ <span class="font-medium">Created:</span> {{ entry.created_at }}</p>
+            <a href="{{ url_for('search_outfit', filename=entry.filename) }}" class="inline-block mt-auto text-emerald-700 font-semibold hover:underline">🔁 Search Again</a>
+          </div>
+          {% endfor %}
         </div>
-        {% endfor %}
-      </div>
 
-      <!-- Pagination Controls -->
-      <div id="pagination-controls" class="flex justify-center items-center space-x-2 mt-6"></div>
-    </section>
+        <!-- Pagination Controls -->
+        <div id="pagination-controls" class="flex justify-center items-center space-x-2 mt-6"></div>
+      </section>
+      {% endif %}
+
 
   </main>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      // Mobile menu toggle
+      const mobileMenuButton = document.getElementById('mobileMenuButton');
+      const navLinks = document.getElementById('navLinks');
+
+      if (mobileMenuButton) {
+        mobileMenuButton.addEventListener('click', () => {
+          navLinks.classList.toggle('show');
+        });
+      }
+
+      // Pagination setup
       const cards = Array.from(document.querySelectorAll('.history-card'));
       const perPage = 4;
       const totalPages = Math.ceil(cards.length / perPage);
@@ -106,7 +264,16 @@
         prev.addEventListener('click', () => showPage(currentPage - 1));
         container.appendChild(prev);
 
-        for (let p = 1; p <= totalPages; p++) {
+        // Show fewer pagination buttons on mobile
+        const maxButtons = window.innerWidth < 640 ? 3 : totalPages;
+        const startPage = window.innerWidth < 640 ?
+                          Math.max(1, Math.min(currentPage - 1, totalPages - maxButtons + 1)) :
+                          1;
+        const endPage = window.innerWidth < 640 ?
+                        Math.min(startPage + maxButtons - 1, totalPages) :
+                        totalPages;
+
+        for (let p = startPage; p <= endPage; p++) {
           const btn = document.createElement('button');
           btn.textContent = p;
           btn.className = `px-3 py-1 rounded ${p===currentPage?'bg-green-800 text-white':'bg-green-100 text-green-800 hover:bg-green-200'}`;
@@ -122,7 +289,13 @@
         container.appendChild(next);
       }
 
+      // Initialize pagination
       showPage(1);
+
+      // Add window resize listener to adjust pagination
+      window.addEventListener('resize', () => {
+        renderPagination();
+      });
     });
   </script>
 </body>
