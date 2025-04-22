@@ -63,17 +63,29 @@
       <span class="text-2xl">🥼</span>
       Start Designing Now
     </a>
-    <h1>History</h1>
-    <ul>
+    <section class="mt-20 px-4">
+      <h2 class="text-3xl font-bold text-green-900 mb-6 text-center">Outfit History</h2>
+    
+      {% if history %}
+      <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 text-left">
         {% for entry in history %}
-            <li>
-                <img src="{{ url_for('static', filename='generated/' ~ entry['filename']) }}" alt="Generated Image" style="width:100px;">
-                <p>Query: {{ entry['query'] }}</p>
-                <p>Created At: {{ entry['created_at'] }}</p>
-                <a href="{{ url_for('search_outfit', filename=entry['filename']) }}">Search Again</a>
-            </li>
+        <div class="bg-white shadow-md rounded-xl p-4 hover:shadow-lg transition text-left">
+          <img src="{{ url_for('static', filename='generated/' ~ entry['filename']) }}" 
+               alt="Generated Image" 
+               class="w-full h-48 object-cover rounded-lg mb-3" />
+          <p class="text-sm text-gray-600 mb-1">📌 <span class="font-medium">Description:</span> {{ entry['query'] }}</p>
+          <p class="text-sm text-gray-500 mb-3">⏰ <span class="font-medium">Created:</span> {{ entry['created_at'] }}</p>
+          <a href="{{ url_for('search_outfit', filename=entry['filename']) }}" 
+             class="inline-block mt-auto text-emerald-700 font-semibold hover:underline">
+            🔁 Search Again
+          </a>
+        </div>
         {% endfor %}
-    </ul>
+      </div>
+      {% else %}
+        <p class="text-left text-gray-500 text-lg mt-6">No outfit history found yet.</p>
+      {% endif %}
+    </section>
     
   </main>
 
