@@ -6,8 +6,19 @@
   <title>AI Outfit Styler</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body {
+    html, body {
       background-color: #fdfbf0;
+      font-family: "Inter", sans-serif;
+      /* Hide scrollbar */
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+      overflow-y: auto;
+    }
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      background: transparent;
     }
   </style>
 </head>
@@ -15,79 +26,104 @@
 
   <!-- Navigation -->
   <nav class="flex justify-between items-center px-8 py-4 shadow-sm bg-white/50 fixed backdrop-blur-sm w-full top-0 z-50">
-    <!-- Logo + tên -->
     <div class="text-2xl font-bold text-green-800 flex items-center gap-2">
       <a href="{{ url_for('home') }}" class="flex items-center gap-2 group">
         <span class="text-2xl">🧥</span>
         <span class="group-hover:underline">OutfitAI</span>
       </a>
     </div>
-  
-    <!-- Các nút điều hướng -->
     <div class="flex gap-6 items-center text-green-800 font-medium">
-       <a href="{{ url_for('outfit_recommend') }}" class="hover:underline">Outfit Recommend</a>
-      <a href="{{ url_for('tryon_outfit') }}" class="hover:underline">Try On</a>  
+      <a href="{{ url_for('outfit_recommend') }}" class="hover:underline">Outfit Recommend</a>
+      <a href="{{ url_for('tryon_outfit') }}" class="hover:underline">Try On</a>
       <a href="{{ url_for('generate_outfit') }}" class="bg-green-800 text-white px-4 py-2 rounded-md hover:bg-green-700">Generate Outfit</a>
     </div>
   </nav>
-  
 
-  <!-- Hero Section -->
+  <!-- Main Content -->
   <main class="max-w-5xl mx-auto text-center pt-40 px-4">
+    <!-- Hero Section -->
     <h1 class="text-5xl font-bold mb-8 leading-tight text-green-900">
       Transform Your Outfit with AI Suggestions
     </h1>
-
     <p class="text-xl text-green-800/80 mb-12 max-w-2xl mx-auto">
       Upload your photo and explore outfit alternatives — change styles, try new colors, and get accessory suggestions powered by AI.
     </p>
-
     <div class="flex flex-wrap justify-center gap-4 mb-12 text-green-900 font-medium">
-      <div class="bg-green-100 px-6 py-3 rounded-full flex items-center gap-2">
-        ✅ Upload a photo
-      </div>
-      <div class="bg-green-100 px-6 py-3 rounded-full flex items-center gap-2">
-        ✅ Get outfit suggestions
-      </div>
-      <div class="bg-green-100 px-6 py-3 rounded-full flex items-center gap-2">
-        ✅ Style with accessories
-      </div>
+      <div class="bg-green-100 px-6 py-3 rounded-full flex items-center gap-2">✅ Upload a photo</div>
+      <div class="bg-green-100 px-6 py-3 rounded-full flex items-center gap-2">✅ Get outfit suggestions</div>
+      <div class="bg-green-100 px-6 py-3 rounded-full flex items-center gap-2">✅ Style with accessories</div>
     </div>
-
-    <!-- <button class="bg-yellow-400 text-white px-8 py-4 text-xl flex items-center gap-2 rounded-md mx-auto">
-        <span class="text-2xl">👉🏿</span>
-      Start Designing Now
-    </button> -->
-    <a href="{{ url_for('generate_outfit') }}" 
-      class="inline-flex items-center gap-3 px-6 py-3 bg-yellow-400 text-white text-lg font-medium rounded-xl shadow-md hover:bg-yellow-500 transition">
+    <a href="{{ url_for('generate_outfit') }}" class="inline-flex items-center gap-3 px-6 py-3 bg-yellow-400 text-white text-lg font-medium rounded-xl shadow-md hover:bg-yellow-500 transition">
       <span class="text-2xl">🥼</span>
       Start Designing Now
     </a>
-    <section class="mt-20 px-4">
+
+    <!-- Outfit History with Client-side Pagination -->
+    <section id="history-section" class="mt-20 px-4">
       <h2 class="text-3xl font-bold text-green-900 mb-6 text-center">Outfit History</h2>
-    
-      {% if history %}
-      <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 text-left">
+
+      <div id="history-container" class="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 text-left">
         {% for entry in history %}
-        <div class="bg-white shadow-md rounded-xl p-4 hover:shadow-lg transition text-left">
-          <img src="{{ url_for('static', filename='generated/' ~ entry['filename']) }}" 
-               alt="Generated Image" 
-               class="w-full h-48 object-cover rounded-lg mb-3" />
-          <p class="text-sm text-gray-600 mb-1">📌 <span class="font-medium">Description:</span> {{ entry['query'] }}</p>
-          <p class="text-sm text-gray-500 mb-3">⏰ <span class="font-medium">Created:</span> {{ entry['created_at'] }}</p>
-          <a href="{{ url_for('search_outfit', filename=entry['filename']) }}" 
-             class="inline-block mt-auto text-emerald-700 font-semibold hover:underline">
-            🔁 Search Again
-          </a>
+        <div class="history-card bg-white shadow-md rounded-xl p-4 hover:shadow-lg transition">
+          <img src="{{ url_for('static', filename='generated/' ~ entry.filename) }}" alt="Generated Image" class="w-full h-48 object-cover rounded-lg mb-3" />
+          <p class="text-sm text-gray-600 mb-1">📌 <span class="font-medium">Description:</span> {{ entry.query }}</p>
+          <p class="text-sm text-gray-500 mb-3">⏰ <span class="font-medium">Created:</span> {{ entry.created_at }}</p>
+          <a href="{{ url_for('search_outfit', filename=entry.filename) }}" class="inline-block mt-auto text-emerald-700 font-semibold hover:underline">🔁 Search Again</a>
         </div>
         {% endfor %}
       </div>
-      {% else %}
-        <p class="text-left text-gray-500 text-lg mt-6">No outfit history found yet.</p>
-      {% endif %}
+
+      <!-- Pagination Controls -->
+      <div id="pagination-controls" class="flex justify-center items-center space-x-2 mt-6"></div>
     </section>
-    
+
   </main>
 
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const cards = Array.from(document.querySelectorAll('.history-card'));
+      const perPage = 4;
+      const totalPages = Math.ceil(cards.length / perPage);
+      let currentPage = 1;
+
+      function showPage(page) {
+        currentPage = page;
+        const start = (page - 1) * perPage;
+        const end = start + perPage;
+        cards.forEach((card, idx) => {
+          card.classList.toggle('hidden', idx < start || idx >= end);
+        });
+        renderPagination();
+      }
+
+      function renderPagination() {
+        const container = document.getElementById('pagination-controls');
+        container.innerHTML = '';
+        const prev = document.createElement('button');
+        prev.textContent = 'Prev';
+        prev.disabled = currentPage === 1;
+        prev.className = `px-3 py-1 rounded ${currentPage===1?'bg-gray-200 text-gray-500':'bg-green-800 text-white hover:bg-green-700'}`;
+        prev.addEventListener('click', () => showPage(currentPage - 1));
+        container.appendChild(prev);
+
+        for (let p = 1; p <= totalPages; p++) {
+          const btn = document.createElement('button');
+          btn.textContent = p;
+          btn.className = `px-3 py-1 rounded ${p===currentPage?'bg-green-800 text-white':'bg-green-100 text-green-800 hover:bg-green-200'}`;
+          btn.addEventListener('click', () => showPage(p));
+          container.appendChild(btn);
+        }
+
+        const next = document.createElement('button');
+        next.textContent = 'Next';
+        next.disabled = currentPage === totalPages;
+        next.className = `px-3 py-1 rounded ${currentPage===totalPages?'bg-gray-200 text-gray-500':'bg-green-800 text-white hover:bg-green-700'}`;
+        next.addEventListener('click', () => showPage(currentPage + 1));
+        container.appendChild(next);
+      }
+
+      showPage(1);
+    });
+  </script>
 </body>
 </html>
