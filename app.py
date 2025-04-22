@@ -18,9 +18,9 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Set API key and model
-os.environ["SERPAPI_API_KEY"] = "your-serpapi-api-key"
+os.environ["SERPAPI_API_KEY"] = "358be89fd2b80fb59339205027c0967783b6b94a44e498d6bb64fb690cc7aaf3"
 api_key = os.environ.get("SERPAPI_API_KEY")
-os.environ["GEMINI_API_KEY"] = "your-gemini-api-key"
+os.environ["GEMINI_API_KEY"] = "AIzaSyB9v8czj3wz5T6lmgxRIJEFfAMsr3eHvFE"
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 outfit_model = Model(client, api_key)
 
@@ -221,58 +221,86 @@ def tryon_outfit():
         "static/samples/person2.jpg",
         "static/samples/person3.jpg"
     ]
+
     if request.method == 'POST':
         person_image_path = None
         outfit_image_path = None
-        # --- Ảnh người ---
+
+        # --- Handle person image (uploaded or sample) ---
         person_file = request.files.get('person_image')
         selected_person = request.form.get('sample_person')
 
+        # Check for uploaded person image
         if person_file and person_file.filename != '' and allowed_file(person_file.filename):
             filename = secure_filename(person_file.filename)
             person_image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             person_file.save(person_image_path)
-        elif selected_person in sample_people:
-            person_image_path = selected_person
+        # Check for selected sample person
+        elif selected_person:
+            # Convert relative path to absolute path
+            if selected_person.startswith('static/'):
+                rel_path = selected_person.replace('static/', '')
+                person_image_path = os.path.join(app.static_folder, rel_path)
+            else:
+                person_image_path = selected_person
 
-        # --- Ảnh outfit ---
+        # --- Handle outfit image (uploaded or sample) ---
         outfit_file = request.files.get('outfit_image')
         selected_outfit = request.form.get('sample_outfit')
 
+        # Check for uploaded outfit image
         if outfit_file and outfit_file.filename != '' and allowed_file(outfit_file.filename):
             filename = secure_filename(outfit_file.filename)
             outfit_image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             outfit_file.save(outfit_image_path)
-        elif selected_outfit in sample_outfits:
-            outfit_image_path = selected_outfit
+        # Check for selected sample outfit
+        elif selected_outfit:
+            # Convert relative path to absolute path
+            if selected_outfit.startswith('static/'):
+                rel_path = selected_outfit.replace('static/', '')
+                outfit_image_path = os.path.join(app.static_folder, rel_path)
+            else:
+                outfit_image_path = selected_outfit
 
-        # Kiểm tra đủ 2 ảnh
+        # Validate both images are provided
         if not person_image_path or not outfit_image_path:
             flash("Please provide both a person image and an outfit (upload or choose a sample).")
             return redirect(request.url)
 
-        # Thực hiện try-on
-        try:
-            tryon_output = outfit_model.try_on(person_image_path, outfit_image_path)
-        except Exception as e:
-            flash(f"Error try on cloth: {str(e)}")
+        # Ensure both paths exist
+        if not os.path.exists(person_image_path):
+            flash(f"Error: Person image path does not exist: {person_image_path}")
             return redirect(request.url)
 
-        if tryon_output:
-            tryon_result = tryon_output
+        if not os.path.exists(outfit_image_path):
+            flash(f"Error: Outfit image path does not exist: {outfit_image_path}")
+            return redirect(request.url)
 
-            # --- Thêm vào lịch sử ---
-            try:
-                filename = os.path.basename(tryon_result)
-                query = f"Try-On từ: {os.path.basename(person_image_path)} + {os.path.basename(outfit_image_path)}"
-                db = get_db()
-                db.execute('INSERT INTO history (filename, query) VALUES (?, ?)', (filename, query))
-                db.commit()
-            except Exception as e:
-                flash(f"Cannot save to history: {str(e)}")
+        # Perform try-on
+        try:
+            tryon_output = outfit_model.try_on(person_image_path, outfit_image_path)
 
-        else:
-            flash("Try on cloth fail, please try again.")
+            if tryon_output:
+                tryon_result = tryon_output
+
+                # Add to history
+                try:
+                    filename = os.path.basename(tryon_result)
+                    person_filename = os.path.basename(person_image_path)
+                    outfit_filename = os.path.basename(outfit_image_path)
+                    query = f"Try-On from: {person_filename} + {outfit_filename}"
+
+                    db = get_db()
+                    db.execute('INSERT INTO history (filename, query) VALUES (?, ?)', (filename, query))
+                    db.commit()
+                except Exception as e:
+                    flash(f"Cannot save to history: {str(e)}")
+            else:
+                flash("Try-on failed. Please try again.")
+                return redirect(request.url)
+
+        except Exception as e:
+            flash(f"Error during try-on process: {str(e)}")
             return redirect(request.url)
 
     history_count = get_db().execute('SELECT COUNT(*) AS total FROM history').fetchone()['total']
