@@ -204,25 +204,49 @@
 
     <!-- Outfit History with Client-side Pagination -->
     {% if history %}
-      <section id="history-section" class="mt-20 px-4">
-        <h2 class="text-3xl font-bold text-green-900 mb-6 text-center">Outfit History</h2>
+<section id="history-section" class="mt-20 px-4">
+  <h2 class="text-3xl font-bold text-green-900 mb-6 text-center">Outfit History</h2>
 
-        <div id="history-container" class="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 text-left">
-          {% for entry in history %}
-          <div class="history-card">
-            <img src="{{ url_for('static', filename='generated/' ~ entry.filename) }}" alt="Generated Image" class="w-full h-48 object-cover rounded-lg mb-3" />
-            <p class="text-sm text-gray-600 mb-1">📌 <span class="font-medium">Description:</span> {{ entry.query }}</p>
-            <p class="text-sm text-gray-500 mb-3">⏰ <span class="font-medium">Created:</span> {{ entry.created_at }}</p>
-            <a href="{{ url_for('search_outfit', filename=entry.filename) }}" class="inline-block mt-auto text-emerald-700 font-semibold hover:underline">🔁 Search Again</a>
-          </div>
-          {% endfor %}
-        </div>
+  <div id="history-container" class="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 text-left">
+    {% for entry in history %}
+    <div class="history-card flex flex-col">
+      <img
+        src="{{ url_for('static', filename='generated/' ~ entry.filename) }}"
+        data-fallback="{{ url_for('static', filename='tryon/' ~ entry.filename) }}"
+        data-link="{{ url_for('search_outfit', filename=entry.filename) }}"
+        onload="showSearchAgain(this)"
+        onerror="swapFallback(this)"
+        alt="Generated Image"
+        class="w-full h-48 object-cover rounded-lg mb-3"
+      />
+      <p class="text-sm text-gray-600 mb-1">📌 <span class="font-medium">Description:</span> {{ entry.query }}</p>
+      <p class="text-sm text-gray-500 mb-3">⏰ <span class="font-medium">Created:</span> {{ entry.created_at }}</p>
+      <a class="search-again hidden mt-auto text-emerald-700 font-semibold hover:underline">🔁 Search Again</a>
+    </div>
+    {% endfor %}
+  </div>
 
-        <!-- Pagination Controls -->
-        <div id="pagination-controls" class="flex justify-center items-center space-x-2 mt-6"></div>
-      </section>
-      {% endif %}
+  <!-- Pagination Controls -->
+  <div id="pagination-controls" class="flex justify-center items-center space-x-2 mt-6"></div>
+</section>
+{% endif %}
+<script>
+  function swapFallback(img) {
+    img.onerror = null;
+    img.src = img.dataset.fallback;
+    // không show nút Search Again
+  }
 
+  function showSearchAgain(img) {
+    // nếu URL gốc vẫn là generated
+    if (img.src.includes('/generated/')) {
+      const card = img.closest('.history-card');
+      const link = card.querySelector('.search-again');
+      link.href = img.dataset.link;
+      link.classList.remove('hidden');
+    }
+  }
+</script>
 
   </main>
 
